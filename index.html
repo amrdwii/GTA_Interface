@@ -10,6 +10,11 @@
             src: url('path/to/pricedown.ttf') format('truetype');
         }
 
+        @font-face {
+            font-family: 'TSGTA';
+            src: url('path/to/TSGTA-Regular.otf') format('opentype');
+        }
+
         body {
             display: flex;
             flex-direction: column;
@@ -18,7 +23,7 @@
             height: 100vh;
             background-color: #000;
             color: #fff;
-            font-family: 'Pricedown', sans-serif;
+            font-family: 'Pricedown', 'TSGTA', sans-serif;
             margin: 0;
         }
 
@@ -36,13 +41,13 @@
             width: 200px;
             height: 20px;
             background-color: red;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
         }
 
         .gun {
             position: absolute;
-            top: 50px; /* Adjust as needed */
-            right: 10px; /* Adjust as needed */
+            top: 0;
+            left: 0;
         }
 
         .money {
@@ -62,18 +67,78 @@
         .input-section input {
             padding: 10px;
             font-size: 24px;
-            font-family: 'Pricedown', sans-serif;
+            font-family: 'Pricedown', 'TSGTA', sans-serif;
+            margin-bottom: 10px;
+        }
+
+        .input-section button {
+            padding: 10px 20px;
+            font-size: 24px;
+            font-family: 'Pricedown', 'TSGTA', sans-serif;
+            background-color: #006400;
+            color: #fff;
+            border: none;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        .input-section button:hover {
+            background-color: #004d00;
+        }
+
+        .log {
+            margin-top: 20px;
+            width: 80%;
+            max-width: 600px;
+            text-align: left;
+            overflow-y: auto;
+            max-height: 200px;
+            font-size: 20px;
+        }
+
+        .log div {
+            margin-bottom: 5px;
+        }
+
+        .debts {
+            margin-top: 20px;
+            width: 80%;
+            max-width: 600px;
+            text-align: left;
+            font-size: 20px;
+        }
+
+        .debts input {
+            padding: 10px;
+            font-size: 24px;
+            font-family: 'Pricedown', 'TSGTA', sans-serif;
+            margin-bottom: 10px;
+        }
+
+        .debts button {
+            padding: 10px 20px;
+            font-size: 24px;
+            font-family: 'Pricedown', 'TSGTA', sans-serif;
+            background-color: #006400;
+            color: #fff;
+            border: none;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        .debts button:hover {
+            background-color: #004d00;
         }
     </style>
 </head>
 <body>
     <div class="interface">
-        <div class="time" id="time"></div>
-        <div class="health-bar"></div>
         <div class="gun">
             <img src="images/gun.png" alt="Gun Image" width="100">
         </div>
-        <div class="money" id="money">$08008132</div>
+        <div class="time" id="time"></div>
+        <div class="health-bar"></div>
+        <div class="money" id="money">$0</div>
         <div class="stars">
             <img src="images/star_full.png" alt="Star" width="30">
             <img src="images/star_full.png" alt="Star" width="30">
@@ -82,8 +147,19 @@
             <img src="images/star_empty.png" alt="Star" width="30">
         </div>
         <div class="input-section">
-            <input type="text" id="numberInput" placeholder="Enter number">
+            <input type="number" id="numberInput" placeholder="Enter number">
+            <input type="text" id="descriptionInput" placeholder="Enter description">
             <button onclick="updateMoney()">Update</button>
+            <button onclick="resetLog()">Reset</button>
+            <button onclick="toggleDebts()">Toggle Debts</button>
+        </div>
+        <div class="debts" id="debts" style="display: none;">
+            <input type="number" id="debtAmountInput" placeholder="Enter debt amount">
+            <input type="text" id="debtPersonInput" placeholder="Enter debt person">
+            <button onclick="addDebt()">Add Debt</button>
+        </div>
+        <div class="log" id="log">
+            <!-- Log entries will appear here -->
         </div>
     </div>
 
@@ -96,12 +172,95 @@
         }
 
         function updateMoney() {
-            const numberInput = document.getElementById('numberInput').value;
-            document.getElementById('money').innerText = `$${numberInput}`;
+            const numberInput = parseInt(document.getElementById('numberInput').value);
+            const descriptionInput = document.getElementById('descriptionInput').value;
+            let currentMoney = parseInt(localStorage.getItem('money')) || 0;
+            currentMoney += numberInput;
+            localStorage.setItem('money', currentMoney);
+
+            document.getElementById('money').innerText = `$${currentMoney}`;
+
+            const log = JSON.parse(localStorage.getItem('log')) || [];
+            const transactionType = numberInput >= 0 ? 'Income' : 'Expense';
+            const logEntry = `${transactionType}: $${numberInput} (${descriptionInput})`;
+            log.push(logEntry);
+            localStorage.setItem('log', JSON.stringify(log));
+            updateLog();
         }
 
+        function updateLog() {
+            const log = JSON.parse(localStorage.getItem('log')) || [];
+            const logContainer = document.getElementById('log');
+            logContainer.innerHTML = '';
+            log.forEach(entry => {
+                const logEntry = document.createElement('div');
+                logEntry.innerText = entry;
+                logEntry.style.color = entry.startsWith('Income') ? 'green' : 'red';
+                logContainer.appendChild(logEntry);
+            });
+        }
+
+        function resetLog() {
+            localStorage.setItem('log', JSON.stringify([]));
+            updateLog();
+        }
+
+        function addDebt() {
+            const debtAmount = parseInt(document.getElementById('debtAmountInput').value);
+            const debtPerson = document.getElementById('debtPersonInput').value;
+            const debt = { amount: debtAmount, person: debtPerson };
+            const debts = JSON.parse(localStorage.getItem('debts')) || [];
+            debts.push(debt);
+            localStorage.setItem('debts', JSON.stringify(debts));
+            updateDebtLog();
+        }
+
+        function updateDebtLog() {
+            const debts = JSON.parse(localStorage.getItem('debts')) || [];
+            const debtLogContainer = document.getElementById('debts');
+            debtLogContainer.innerHTML = `
+                <input type="number" id="debtAmountInput" placeholder="Enter debt amount">
+                <input type="text" id="debtPersonInput" placeholder="Enter debt person">
+                <button onclick="addDebt()">Add Debt</button>`;
+            debts.forEach((debt, index) => {
+                const debtLogEntry = document.createElement('div');
+                debtLogEntry.innerText = `Debt: $${debt.amount} from ${debt.person}`;
+                debtLogEntry.style.color = 'blue';
+                debtLogEntry.onclick = function() {
+                    removeDebt(index);
+                };
+                debtLogContainer.appendChild(debtLogEntry);
+            });
+        }
+
+        function removeDebt(index) {
+            const debts = JSON.parse(localStorage.getItem('debts')) || [];
+            debts.splice(index, 1);
+            localStorage.setItem('debts', JSON.stringify(debts));
+            updateDebtLog();
+        }
+
+        function toggleDebts() {
+            const debtsContainer = document.getElementById('debts');
+            debtsContainer.style.display = debtsContainer.style.display === 'none' ? 'block' : 'none';
+            updateDebtLog();
+        }
+
+        function init() {
+            const storedMoney = localStorage.getItem('money');
+            document.getElementById('money').innerText = `$${storedMoney || 0}`;
+            updateTime(); // Initial call to set time immediately
+            updateLog();
+        }
+
+        document.getElementById('numberInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                updateMoney();
+            }
+        });
+
         setInterval(updateTime, 1000);
-        updateTime(); // Initial call to set time immediately
+        init(); // Initialize the interface with stored data
     </script>
 </body>
 </html>
