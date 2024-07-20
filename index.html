@@ -135,53 +135,10 @@
         .debts button:hover {
             background-color: #004d00;
         }
-
-        .login-container, .register-container {
-            display: none;
-            text-align: center;
-        }
-
-        .login-container input, .register-container input {
-            padding: 10px;
-            font-size: 24px;
-            font-family: 'Pricedown', 'TSGTA', sans-serif;
-            margin-bottom: 10px;
-        }
-
-        .login-container button, .register-container button {
-            padding: 10px 20px;
-            font-size: 24px;
-            font-family: 'Pricedown', 'TSGTA', sans-serif;
-            background-color: #006400;
-            color: #fff;
-            border: none;
-            margin: 5px;
-            cursor: pointer;
-        }
-
-        .login-container button:hover, .register-container button:hover {
-            background-color: #004d00;
-        }
     </style>
 </head>
 <body>
-    <div class="login-container" id="login-container">
-        <h1>Login</h1>
-        <input type="text" id="login-username" placeholder="Username">
-        <input type="password" id="login-password" placeholder="Password">
-        <button onclick="login()">Login</button>
-        <button onclick="showRegister()">Register</button>
-        <div id="login-error" style="color:red;"></div>
-    </div>
-    <div class="register-container" id="register-container">
-        <h1>Register</h1>
-        <input type="text" id="register-username" placeholder="Username">
-        <input type="password" id="register-password" placeholder="Password">
-        <button onclick="register()">Register</button>
-        <button onclick="showLogin()">Back to Login</button>
-        <div id="register-error" style="color:red;"></div>
-    </div>
-    <div class="interface" id="interface" style="display: none;">
+    <div class="interface">
         <div class="gun">
             <img src="images/gun.png" alt="Gun Image" width="100">
         </div>
@@ -213,55 +170,6 @@
     </div>
 
     <script>
-        let currentUser = null;
-
-        function showLogin() {
-            document.getElementById('login-container').style.display = 'block';
-            document.getElementById('register-container').style.display = 'none';
-            document.getElementById('interface').style.display = 'none';
-        }
-
-        function showRegister() {
-            document.getElementById('login-container').style.display = 'none';
-            document.getElementById('register-container').style.display = 'block';
-            document.getElementById('interface').style.display = 'none';
-        }
-
-        function showInterface() {
-            document.getElementById('login-container').style.display = 'none';
-            document.getElementById('register-container').style.display = 'none';
-            document.getElementById('interface').style.display = 'block';
-            init();
-        }
-
-        function getUserStorageKey(key) {
-            return `${currentUser}_${key}`;
-        }
-
-        function login() {
-            const username = document.getElementById('login-username').value;
-            const password = document.getElementById('login-password').value;
-            const storedPassword = localStorage.getItem(`user_${username}`);
-            if (storedPassword && storedPassword === password) {
-                currentUser = username;
-                localStorage.setItem('currentUser', currentUser);
-                showInterface();
-            } else {
-                document.getElementById('login-error').innerText = 'Invalid username or password.';
-            }
-        }
-
-        function register() {
-            const username = document.getElementById('register-username').value;
-            const password = document.getElementById('register-password').value;
-            if (localStorage.getItem(`user_${username}`)) {
-                document.getElementById('register-error').innerText = 'Username already exists.';
-            } else {
-                localStorage.setItem(`user_${username}`, password);
-                showLogin();
-            }
-        }
-
         function updateTime() {
             const now = new Date();
             const hours = String(now.getHours()).padStart(2, '0');
@@ -269,86 +177,103 @@
             document.getElementById('time').innerText = `${hours}:${minutes}`;
         }
 
-        function updateLog() {
-            const log = JSON.parse(localStorage.getItem(getUserStorageKey('log'))) || [];
-            const logDiv = document.getElementById('log');
-            logDiv.innerHTML = '';
-            log.forEach(entry => {
-                const div = document.createElement('div');
-                div.innerText = entry;
-                logDiv.appendChild(div);
-            });
-        }
-
-        function updateDebtLog() {
-            const debts = JSON.parse(localStorage.getItem(getUserStorageKey('debts'))) || [];
-            const debtsDiv = document.getElementById('debts-log');
-            debtsDiv.innerHTML = '';
-            debts.forEach(debt => {
-                const div = document.createElement('div');
-                div.innerText = debt;
-                debtsDiv.appendChild(div);
-            });
-        }
-
         function updateMoney() {
             const numberInput = parseInt(document.getElementById('numberInput').value);
             const descriptionInput = document.getElementById('descriptionInput').value;
-            let currentMoney = parseInt(localStorage.getItem(getUserStorageKey('money'))) || 0;
+            let currentMoney = parseInt(localStorage.getItem('money')) || 0;
             currentMoney += numberInput;
-            localStorage.setItem(getUserStorageKey('money'), currentMoney);
+            localStorage.setItem('money', currentMoney);
 
             document.getElementById('money').innerText = `$${currentMoney}`;
 
-            const log = JSON.parse(localStorage.getItem(getUserStorageKey('log'))) || [];
+            const log = JSON.parse(localStorage.getItem('log')) || [];
             const transactionType = numberInput >= 0 ? 'Income' : 'Expense';
             const logEntry = `${transactionType}: $${numberInput} (${descriptionInput})`;
             log.push(logEntry);
-            localStorage.setItem(getUserStorageKey('log'), JSON.stringify(log));
+            localStorage.setItem('log', JSON.stringify(log));
             updateLog();
         }
 
+        function updateLog() {
+            const log = JSON.parse(localStorage.getItem('log')) || [];
+            const logContainer = document.getElementById('log');
+            logContainer.innerHTML = '';
+            log.forEach(entry => {
+                const logEntry = document.createElement('div');
+                logEntry.innerText = entry;
+                logEntry.style.color = entry.startsWith('Income') ? 'green' : 'red';
+                logContainer.appendChild(logEntry);
+            });
+        }
+
         function resetLog() {
-            localStorage.removeItem(getUserStorageKey('log'));
-            localStorage.setItem(getUserStorageKey('money'), 0);
-            document.getElementById('money').innerText = `$0`;
+            localStorage.setItem('log', JSON.stringify([]));
             updateLog();
         }
 
         function addDebt() {
             const debtAmount = parseInt(document.getElementById('debtAmountInput').value);
             const debtPerson = document.getElementById('debtPersonInput').value;
-            const debtEntry = `Debt: $${debtAmount} to ${debtPerson}`;
-            const debts = JSON.parse(localStorage.getItem(getUserStorageKey('debts'))) || [];
-            debts.push(debtEntry);
-            localStorage.setItem(getUserStorageKey('debts'), JSON.stringify(debts));
+            const debt = { amount: debtAmount, person: debtPerson };
+            const debts = JSON.parse(localStorage.getItem('debts')) || [];
+            debts.push(debt);
+            localStorage.setItem('debts', JSON.stringify(debts));
+            updateDebtLog();
+        }
+
+        function updateDebtLog() {
+            const debts = JSON.parse(localStorage.getItem('debts')) || [];
+            const debtLogContainer = document.getElementById('debts');
+            debtLogContainer.innerHTML = `
+                <input type="number" id="debtAmountInput" placeholder="Enter debt amount">
+                <input type="text" id="debtPersonInput" placeholder="Enter debt person">
+                <button onclick="addDebt()">Add Debt</button>`;
+            debts.forEach((debt, index) => {
+                const debtLogEntry = document.createElement('div');
+                debtLogEntry.innerText = `Debt: $${debt.amount} from ${debt.person}`;
+                debtLogEntry.style.color = 'blue';
+                debtLogEntry.onclick = function() {
+                    removeDebt(index);
+                };
+                debtLogContainer.appendChild(debtLogEntry);
+            });
+        }
+
+        function removeDebt(index) {
+            const debts = JSON.parse(localStorage.getItem('debts')) || [];
+            debts.splice(index, 1);
+            localStorage.setItem('debts', JSON.stringify(debts));
             updateDebtLog();
         }
 
         function toggleDebts() {
-            const debtsSection = document.getElementById('debts');
-            if (debtsSection.style.display === 'none') {
-                debtsSection.style.display = 'block';
-            } else {
-                debtsSection.style.display = 'none';
-            }
+            const debtsContainer = document.getElementById('debts');
+            debtsContainer.style.display = debtsContainer.style.display === 'none' ? 'block' : 'none';
         }
 
         function init() {
-            currentUser = localStorage.getItem('currentUser');
-            if (currentUser) {
-                document.getElementById('money').innerText = `$${localStorage.getItem(getUserStorageKey('money')) || 0}`;
-                updateLog();
-                updateDebtLog();
-                updateTime();
-                setInterval(updateTime, 60000); // Update the time every minute
-                showInterface();
-            } else {
-                showLogin();
-            }
+            document.getElementById('money').innerText = `$${localStorage.getItem('money') || 0}`;
+            updateLog();
+            updateDebtLog();
+            updateTime();
         }
 
-        window.onload = init;
+        window.addEventListener('load', function() {
+            document.getElementById('numberInput').addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    updateMoney();
+                }
+            });
+
+            document.getElementById('descriptionInput').addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    updateMoney();
+                }
+            });
+
+            setInterval(updateTime, 1000);
+            init();
+        });
     </script>
 </body>
 </html>
