@@ -167,6 +167,9 @@
         <div class="log" id="log">
             <!-- Log entries will appear here -->
         </div>
+
+        <audio id="incomeSound" src="sounds/income.mp3"></audio>
+        <audio id="expenseSound" src="sounds/expense.mp3"></audio>
     </div>
 
     <script>
@@ -192,6 +195,13 @@
             log.push(logEntry);
             localStorage.setItem('log', JSON.stringify(log));
             updateLog();
+
+            // تشغيل الصوت المناسب
+            if (numberInput >= 0) {
+                document.getElementById('incomeSound').play();
+            } else {
+                document.getElementById('expenseSound').play();
+            }
         }
 
         function updateLog() {
@@ -276,4 +286,4 @@
         });
     </script>
 </body>
-</html>
+</html> 
