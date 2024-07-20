@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTA Style Interface</title>
+    <style>
+        @font-face {
+            font-family: 'Pricedown';
+            src: url('path/to/pricedown.ttf') format('truetype');
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #000;
+            color: #fff;
+            font-family: 'Pricedown', sans-serif;
+            margin: 0;
+        }
+
+        .interface {
+            text-align: center;
+            position: relative;
+        }
+
+        .time {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .health-bar {
+            width: 200px;
+            height: 20px;
+            background-color: red;
+            margin-bottom: 10px;
+        }
+
+        .gun {
+            position: absolute;
+            top: 50px; /* Adjust as needed */
+            right: 10px; /* Adjust as needed */
+        }
+
+        .money {
+            color: #006400;
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .stars img {
+            margin: 0 2px;
+        }
+
+        .input-section {
+            margin-top: 20px;
+        }
+
+        .input-section input {
+            padding: 10px;
+            font-size: 24px;
+            font-family: 'Pricedown', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="interface">
+        <div class="time" id="time"></div>
+        <div class="health-bar"></div>
+        <div class="gun">
+            <img src="images/gun.png" alt="Gun Image" width="100">
+        </div>
+        <div class="money" id="money">$08008132</div>
+        <div class="stars">
+            <img src="images/star_full.png" alt="Star" width="30">
+            <img src="images/star_full.png" alt="Star" width="30">
+            <img src="images/star_full.png" alt="Star" width="30">
+            <img src="images/star_full.png" alt="Star" width="30">
+            <img src="images/star_empty.png" alt="Star" width="30">
+        </div>
+        <div class="input-section">
+            <input type="text" id="numberInput" placeholder="Enter number">
+            <button onclick="updateMoney()">Update</button>
+        </div>
+    </div>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('time').innerText = `${hours}:${minutes}`;
+        }
+
+        function updateMoney() {
+            const numberInput = document.getElementById('numberInput').value;
+            document.getElementById('money').innerText = `$${numberInput}`;
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime(); // Initial call to set time immediately
+    </script>
+</body>
+</html>
